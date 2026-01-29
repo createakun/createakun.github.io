@@ -412,12 +412,12 @@
                                                       
                     <div class="alert alert-warning">
                         <i class="fas fa-clock me-2"></i>
-                        <strong>Pembayaran otomatis diverifikasi</strong>
-                        <p class="mb-0 small">Status akan diperiksa setiap 5 detik. Jangan tutup halaman ini.</p>
+                        <strong>Pembayaran diverifikasi manual</strong>
+                        <p class="mb-0 small">Klik tombol "Saya Sudah Membayar" untuk mengecek status pembayaran</p>
                     </div>
                     
                     <div id="paymentStatus">
-                        <p class="status-pending"><i class="fas fa-spinner fa-spin me-2"></i>Menunggu pembayaran...</p>
+                        <p class="status-pending"><i class="fas fa-clock me-2"></i>Menunggu pembayaran...</p>
                     </div>
                     
                     <div class="d-none" id="redeemSection">
@@ -694,7 +694,6 @@
         selectedAmount: 50,
         transactionId: null,
         reffId: null,
-        paymentInterval: null,
         redeemCode: null,
         totalAmount: 0,
         isProcessing: false,
@@ -712,7 +711,6 @@
         
         // Handle modal close
         $('#qrisModal').on('hidden.bs.modal', function() {
-            clearPaymentInterval();
             resetPaymentModal();
         });
     });
@@ -811,62 +809,69 @@
     
     // === FUNGSI PAYMENT UTAMA ===
     
-async function processPayment() {
-    if (!appState.selectedAmount || !appState.selectedCoin) {
-        showAlert('error', 'Lengkapi pilihan koin & jumlah');
-        return;
-    }
-
-    const modal = new bootstrap.Modal(document.getElementById('qrisModal'));
-    modal.show();
-// tampilkan harga asli ke modal
-$('#paymentAmount').text(toRupiah(appState.totalAmount));
-    // RESET UI
-    $('#qrisImage').addClass('d-none');
-    $('#loadingQris').removeClass('d-none');
-    $('#paymentStatus').html('<p class="status-pending">Membuat QRIS...</p>');
-    $('#redeemSection').addClass('d-none');
-
-    try {
-        const res = await axios.post(
-            "http://papaaa.queen-priv.my.id:2220/qris/create", // ganti domain backend
-            {
-                amount: appState.totalAmount,
-                coin: appState.selectedCoin,
-                coinAmount: appState.selectedAmount
-            }
-        );
-
-        if (!res.data.success) {
-            showAlert('error', 'Gagal membuat QRIS');
+    async function processPayment() {
+        if (!appState.selectedAmount || !appState.selectedCoin) {
+            showAlert('error', 'Lengkapi pilihan koin & jumlah');
             return;
         }
 
-        // simpan tx
-        appState.transactionId = res.data.idtransaksi;
+        const modal = new bootstrap.Modal(document.getElementById('qrisModal'));
+        modal.show();
+        
+        // tampilkan harga asli ke modal
+        $('#paymentAmount').text(toRupiah(appState.totalAmount));
+        
+        // RESET UI
+        $('#qrisImage').addClass('d-none');
+        $('#loadingQris').removeClass('d-none');
+        $('#paymentStatus').html('<p class="status-pending">Membuat QRIS...</p>');
+        $('#redeemSection').addClass('d-none');
+        $('#manualCheckSection').addClass('d-none');
 
-        // tampilkan QR
-        $('#qrisImage')
-            .attr('src', res.data.imageqris)
-            .removeClass('d-none');
+        try {
+            const res = await axios.post(
+                "http://papaaa.queen-priv.my.id:2220/qris/create",
+                {
+                    amount: appState.totalAmount,
+                    coin: appState.selectedCoin,
+                    coinAmount: appState.selectedAmount
+                }
+            );
 
-        $('#loadingQris').addClass('d-none');
+            if (!res.data.success) {
+                showAlert('error', 'Gagal membuat QRIS');
+                return;
+            }
 
-        $('#paymentStatus').html(`
-            <p class="status-pending">
-                <i class="fas fa-spinner fa-spin me-2"></i>
-                Menunggu pembayaran...
-            </p>
-            <small>ID Transaksi: ${appState.transactionId}</small>
-        `);
+            // simpan tx
+            appState.transactionId = res.data.idtransaksi;
 
-        startStatusChecking();
+            // tampilkan QR
+            $('#qrisImage')
+                .attr('src', res.data.imageqris)
+                .removeClass('d-none');
 
-    } catch (err) {
-        console.error(err);
-        showAlert('error', 'Server error');
+            $('#loadingQris').addClass('d-none');
+
+            $('#paymentStatus').html(`
+                <p class="status-pending">
+                    <i class="fas fa-clock me-2"></i>
+                    Menunggu pembayaran...
+                </p>
+                <small>ID Transaksi: ${appState.transactionId}</small>
+                <p class="small text-muted mt-2">Klik tombol "Saya Sudah Membayar" setelah melakukan pembayaran</p>
+            `);
+
+            // Tampilkan tombol manual check setelah 2 detik
+            setTimeout(() => {
+                document.getElementById('manualCheckSection').classList.remove('d-none');
+            }, 2000);
+
+        } catch (err) {
+            console.error(err);
+            showAlert('error', 'Server error');
+        }
     }
-} 
     
     // Format waktu
     function formatTime(dateString) {
@@ -891,95 +896,61 @@ $('#paymentAmount').text(toRupiah(appState.totalAmount));
         $('#paymentStatus').html('');
         $('#redeemCodeDisplay').text('');
         appState.redeemCode = null;
-    }
-    
-    // Clear interval
-    function clearPaymentInterval() {
-        if (appState.paymentInterval) {
-            clearInterval(appState.paymentInterval);
-            appState.paymentInterval = null;
-        }
+        document.getElementById('manualCheckSection').classList.add('d-none');
     }
     
     // Fungsi retry
     function retryPayment() {
-        clearPaymentInterval();
         resetPaymentModal();
         processPayment();
     }
     
-    // Mulai pengecekan status
-
-function startStatusChecking() {
-    clearInterval(appState.paymentInterval);
-
-    appState.paymentInterval = setInterval(async () => {
-        try {
-            const res = await axios.post(
-                "http://papaaa.queen-priv.my.id:2220/qris/status",
-                {
-                    id: appState.transactionId,
-                    amount: appState.totalAmount
-                }
-            );
-
-            if (res.data.success) {
-                clearInterval(appState.paymentInterval);
-                handlePaymentSuccess();
+    async function createRedeemCode() {
+      try {
+        const res = await axios.get(
+          "http://papaaa.queen-priv.my.id:3000/createcode",
+          {
+            params: {
+              coin: appState.selectedCoin,
+              amount: appState.selectedAmount,
+              creator: "web"
             }
-        } catch (e) {
-            console.error('Cek status gagal', e);
-        }
-    }, 5000);
-}
-    
-    // Handle pembayaran berhasil
+          }
+        );
 
-
-async function createRedeemCode() {
-  try {
-    const res = await axios.get(
-      "http://papaaa.queen-priv.my.id:3000/createcode",
-      {
-        params: {
-          coin: appState.selectedCoin,
-          amount: appState.selectedAmount,
-          creator: "web"
+        if (!res.data.success) {
+          showAlert("error", res.data.msg || "Gagal membuat kode");
+          return;
         }
+
+        // tampilkan ke UI (PAKAI DIV LAMA)
+        $('#redeemCodeDisplay').text(res.data.code);
+        $('#redeemSection').removeClass('d-none');
+
+        showAlert(
+          "success",
+          `Kode berhasil dibuat: ${res.data.code}`
+        );
+
+      } catch (err) {
+        console.error(err);
+        showAlert("error", "Gagal terhubung ke server");
       }
-    );
-
-    if (!res.data.success) {
-      showAlert("error", res.data.msg || "Gagal membuat kode");
-      return;
     }
 
-    // tampilkan ke UI (PAKAI DIV LAMA)
-    $('#redeemCodeDisplay').text(res.data.code);
-    $('#redeemSection').removeClass('d-none');
+    function handlePaymentSuccess() {
+      $('#paymentStatus').html(`
+        <div class="alert alert-success">
+          <i class="fas fa-check-circle me-2"></i>
+          Pembayaran Berhasil
+        </div>
+      `);
 
-    showAlert(
-      "success",
-      `Kode berhasil dibuat: ${res.data.code}`
-    );
-
-  } catch (err) {
-    console.error(err);
-    showAlert("error", "Gagal terhubung ke server");
-  }
-}
-
-function handlePaymentSuccess() {
-  $('#paymentStatus').html(`
-    <div class="alert alert-success">
-      <i class="fas fa-check-circle me-2"></i>
-      Pembayaran Berhasil
-    </div>
-  `);
-
-  createRedeemCode(); // 🔥 sekarang lewat API
-}
-
+      // Sembunyikan tombol manual check
+      document.getElementById('manualCheckSection').classList.add('d-none');
+      
+      createRedeemCode();
+    }
     
     // Generate redeem code
     function generateRedeemCode() {
@@ -1069,14 +1040,9 @@ Sertakan informasi:
     
     // Cleanup saat modal ditutup
     $('#qrisModal').on('hidden.bs.modal', function() {
-        clearPaymentInterval();
         appState.isProcessing = false;
     });
     
-    // Cleanup saat window di-refresh
-    window.addEventListener('beforeunload', function(e) {
-        clearPaymentInterval();
-    });
     // ===== FUNGSI BARU UNTUK MANUAL CHECK =====
     // TAMBAHKAN SETELAH SEMUA FUNGSI YANG SUDAH ADA
     
@@ -1138,20 +1104,6 @@ Sertakan informasi:
         await manualCheckPayment();
     }
     
-    // Fungsi untuk handle ketika modal QRIS ditutup
-    function onQRISModalHidden() {
-        // Sembunyikan section manual check
-        document.getElementById('manualCheckSection').classList.add('d-none');
-    }
-    
-    // Fungsi untuk handle ketika modal QRIS dibuka
-    function onQRISModalShown() {
-        // Tampilkan section manual check setelah 3 detik (setelah QRIS muncul)
-        setTimeout(() => {
-            document.getElementById('manualCheckSection').classList.remove('d-none');
-        }, 3000);
-    }
-    
     // Event listener untuk modal QRIS
     document.addEventListener('DOMContentLoaded', function() {
         const qrisModal = document.getElementById('qrisModal');
@@ -1173,36 +1125,6 @@ Sertakan informasi:
             document.getElementById('manualCheckSection').classList.add('d-none');
         });
     });
-    
-    // Modifikasi kecil pada fungsi processPayment untuk menyembunyikan tombol manual saat awal
-    const originalProcessPayment = processPayment;
-    processPayment = async function() {
-        // Sembunyikan tombol manual check
-        document.getElementById('manualCheckSection').classList.add('d-none');
-        
-        // Jalankan fungsi asli
-        await originalProcessPayment.apply(this, arguments);
-    };
-    
-    // Modifikasi kecil pada fungsi handlePaymentSuccess untuk menyembunyikan tombol manual
-    const originalHandlePaymentSuccess = handlePaymentSuccess;
-    handlePaymentSuccess = async function() {
-        // Sembunyikan tombol manual check
-        document.getElementById('manualCheckSection').classList.add('d-none');
-        
-        // Jalankan fungsi asli
-        await originalHandlePaymentSuccess.apply(this, arguments);
-    };
-    
-    // Modifikasi kecil pada fungsi resetPaymentModal untuk menyembunyikan tombol manual
-    const originalResetPaymentModal = resetPaymentModal;
-    resetPaymentModal = function() {
-        // Jalankan fungsi asli
-        originalResetPaymentModal.apply(this, arguments);
-        
-        // Sembunyikan tombol manual check
-        document.getElementById('manualCheckSection').classList.add('d-none');
-    };
 </script>
 
 </body>
