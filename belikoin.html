@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BeliKoin - Topup Bitcoin & Litecoin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --success: #4cc9f0;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --gradient: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #fff;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .navbar {
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(67, 97, 238, 0.3);
+        }
+        
+        .card-market {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .card-market:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px rgba(67, 97, 238, 0.3);
+        }
+        
+        .coin-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        
+        .btc-bg {
+            background: linear-gradient(135deg, #f7931a 0%, #f2a900 100%);
+        }
+        
+        .ltc-bg {
+            background: linear-gradient(135deg, #bfbbbb 0%, #838383 100%);
+        }
+        
+        .amount-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .amount-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .amount-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(67, 97, 238, 0.5);
+        }
+        
+        .btn-primary {
+            background: var(--gradient);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(67, 97, 238, 0.4);
+        }
+        
+        .modal-content {
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(67, 97, 238, 0.3);
+            border-radius: 20px;
+            color: white;
+        }
+        
+        .qris-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 300px;
+        }
+        
+        #qrisImage {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 10px;
+        }
+        
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .footer {
+            background: rgba(26, 26, 46, 0.9);
+            border-top: 1px solid rgba(67, 97, 238, 0.3);
+            margin-top: 50px;
+        }
+        
+        .contact-btn {
+            background: rgba(67, 97, 238, 0.2);
+            border: 1px solid rgba(67, 97, 238, 0.5);
+            border-radius: 10px;
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .contact-btn:hover {
+            background: rgba(67, 97, 238, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .redeem-code {
+            background: rgba(76, 201, 240, 0.1);
+            border: 2px dashed rgba(76, 201, 240, 0.5);
+            border-radius: 10px;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 18px;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+        
+        .status-success {
+            color: #4cc9f0;
+            font-weight: bold;
+        }
+        
+        .status-pending {
+            color: #ffd166;
+            font-weight: bold;
+        }
+        
+        .coin-option {
+            border: 2px solid transparent;
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .coin-option:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .coin-option.selected {
+            border-color: var(--primary);
+            background: rgba(67, 97, 238, 0.1);
+        }
+        
+        .price-tag {
+            font-size: 14px;
+            color: #4cc9f0;
+            font-weight: bold;
+        }
+        
+    #notPaidOverlay .modal-content {
+        background: rgba(26, 26, 46, 0.98);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 193, 7, 0.3);
+        border-radius: 20px;
+        color: white;
+    }
+    
+    .manual-checking {
+        display: inline-block;
+        animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+        
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-3" href="#">
+                <i class="fas fa-coins me-2"></i>BeliKoin
+            </a>
+            <div class="d-flex align-items-center">
+                <span class="badge bg-success me-3">Live</span>
+                <button class="btn btn-outline-light" onclick="openSupportModal()">
+                    <i class="fas fa-headset me-2"></i>Bantuan
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container py-5">
+        <div class="text-center mb-5">
+            <h1 class="display-4 fw-bold mb-3">Topup Koin Instan</h1>
+            <p class="lead opacity-75">Deposit Bitcoin (BTC) atau Litecoin (LTC) dengan pembayaran QRIS otomatis</p>
+            <div class="alert alert-info d-inline-flex align-items-center" role="alert">
+                <i class="fas fa-info-circle me-2"></i>
+                <span>Harga: 1 Koin = Rp 100 | Pembayaran otomatis diverifikasi</span>
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card-market p-4">
+                    <!-- Step 1: Pilih Koin -->
+                    <div class="mb-5">
+                        <h4 class="mb-4"><i class="fas fa-1 me-2"></i>Pilih Jenis Koin</h4>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="coin-option" onclick="selectCoin('bitcoin')" id="bitcoinOption">
+                                    <div class="coin-icon btc-bg mx-auto">
+                                        <i class="fab fa-bitcoin"></i>
+                                    </div>
+                                    <h5 class="text-center">Bitcoin (BTC)</h5>
+                                    <p class="text-center opacity-75">Koin digital terpopuler</p>
+                                    <div class="text-center">
+                                        <span class="badge bg-warning text-dark">Rekomendasi</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="coin-option" onclick="selectCoin('lcoin')" id="lcoinOption">
+                                    <div class="coin-icon ltc-bg mx-auto">
+                                        <i class="fas fa-coins"></i>
+                                    </div>
+                                    <h5 class="text-center">Litecoin (LTC)</h5>
+                                    <p class="text-center opacity-75">Transaksi lebih cepat</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Pilih Jumlah -->
+                    <div class="mb-5">
+                        <h4 class="mb-4"><i class="fas fa-2 me-2"></i>Pilih Jumlah Koin</h4>
+                        <p class="text-muted mb-3">Harga: 1 Koin = Rp 100</p>
+                        <div class="row g-3" id="amountOptions">
+                            <!-- Generated by JS -->
+                        </div>
+                        <div class="mt-3">
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark text-white border-secondary">
+                                    <i class="fas fa-keyboard"></i>
+                                </span>
+                                <input type="number" 
+                                       class="form-control bg-dark text-white border-secondary" 
+                                       id="customAmount" 
+                                       placeholder="Masukkan jumlah koin custom"
+                                       min="10"
+                                       max="10000">
+                                <button class="btn btn-outline-light" onclick="useCustomAmount()">
+                                    Gunakan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Ringkasan & Bayar -->
+                    <div class="mb-4">
+                        <h4 class="mb-4"><i class="fas fa-3 me-2"></i>Ringkasan Pembelian</h4>
+                        <div class="p-4 bg-dark rounded mb-4">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-2">Jenis Koin:</p>
+                                    <p class="mb-2">Jumlah Koin:</p>
+                                    <p class="mb-2">Harga per Koin:</p>
+                                    <p class="mb-2">Biaya Admin:</p>
+                                    <hr>
+                                    <h5 class="mb-0">Total Bayar:</h5>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <p class="mb-2" id="summaryCoin">-</p>
+                                    <p class="mb-2" id="summaryAmount">-</p>
+                                    <p class="mb-2" id="summaryPricePerCoin">Rp 100</p>
+                                    <p class="mb-2" id="summaryFee">Rp 0</p>
+                                    <hr>
+                                    <h4 class="fw-bold text-success" id="summaryTotal">Rp 0</h4>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-3">
+                            <button class="btn btn-primary btn-lg" onclick="processPayment()" id="payButton">
+                                <i class="fas fa-bolt me-2"></i>Bayar Sekarang
+                            </button>
+                            <button class="btn btn-outline-light" onclick="resetSelection()">
+                                <i class="fas fa-redo me-2"></i>Reset Pilihan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info Penting -->
+                <div class="card-market p-4 mt-4">
+                    <h5><i class="fas fa-exclamation-triangle text-warning me-2"></i>Informasi Penting</h5>
+                    <ul class="mt-3">
+                        <li><strong>Harga tetap:</strong> 1 Koin = Rp 100</li>
+                        <li>Pastikan membayar sesuai nominal yang tertera</li>
+                        <li>Pembayaran diverifikasi otomatis dalam 1-3 menit</li>
+                        <li>Kode redeem akan dibuat otomatis setelah pembayaran berhasil</li>
+                        <li>Kode redeem hanya bisa digunakan 1 kali</li>
+                        <li>Jika ada masalah, hubungi customer service</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="fas fa-coins me-2"></i>BeliKoin</h5>
+                    <p class="opacity-75">Platform topup koin digital terpercaya dengan pembayaran QRIS otomatis.</p>
+                    <p class="small opacity-50">Copyright © 2026 • Developer Dray Official</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <h5>Kontak Developer</h5>
+                    <div class="d-flex justify-content-end gap-3 mt-3">
+                        <a href="https://t.me/drayoffc" target="_blank" class="contact-btn text-decoration-none">
+                            <i class="fab fa-telegram me-2"></i>Telegram
+                        </a>
+                        <a href="https://wa.me/6283151568511" target="_blank" class="contact-btn text-decoration-none">
+                            <i class="fab fa-whatsapp me-2"></i>WhatsApp
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- QRIS Modal -->
+    <div class="modal fade" id="qrisModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">QRIS Pembayaran</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4">
+                        <div class="qris-container mb-3" id="qrisContainer">
+                            <div class="text-center py-5" id="loadingQris">
+                                <div class="loading-spinner mx-auto mb-3"></div>
+                                <p>Membuat QRIS...</p>
+                            </div>
+                            <img id="qrisImage" class="d-none">
+                        </div>
+                        <h4 id="paymentAmount">Rp 0</h4>
+                        <p class="text-muted">Scan QRIS dengan aplikasi e-wallet Anda</p>
+                    </div>
+<!-- QRIS Modal - TAMBAHKAN KODE INI DI DALAM modal-body SETELAH paymentStatus -->
+<div class="text-center mb-3" id="manualCheckSection">
+    <button class="btn btn-warning" onclick="manualCheckPayment()" id="manualCheckBtn">
+        <i class="fas fa-check-circle me-2"></i>Saya Sudah Membayar
+    </button>
+    <p class="small text-muted mt-2">Klik tombol ini jika sudah melakukan pembayaran</p>
+</div>
+
+
+<!-- Tambahkan style CSS di dalam tag style -->
+                    
+                                                      
+                    <div class="alert alert-warning">
+                        <i class="fas fa-clock me-2"></i>
+                        <strong>Pembayaran otomatis diverifikasi</strong>
+                        <p class="mb-0 small">Status akan diperiksa setiap 5 detik. Jangan tutup halaman ini.</p>
+                    </div>
+                    
+                    <div id="paymentStatus">
+                        <p class="status-pending"><i class="fas fa-spinner fa-spin me-2"></i>Menunggu pembayaran...</p>
+                    </div>
+                    
+                    <div class="d-none" id="redeemSection">
+                        <hr>
+                        <h5 class="mb-3"><i class="fas fa-gift text-success me-2"></i>Kode Redeem Anda</h5>
+                        <div class="redeem-code mb-3" id="redeemCodeDisplay"></div>
+                        <p class="small text-muted">Gunakan kode ini di aplikasi untuk mendapatkan koin Anda.</p>
+                        <button class="btn btn-success" onclick="copyRedeemCode()">
+                            <i class="fas fa-copy me-2"></i>Salin Kode
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal" id="closeModalBtn">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Support Modal -->
+    <div class="modal fade" id="supportModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">Hubungi Kami</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4">
+                        <div class="coin-icon btc-bg mx-auto mb-3">
+                            <i class="fas fa-headset"></i>
+                        </div>
+                        <h4>Butuh Bantuan?</h4>
+                        <p class="opacity-75">Tim support kami siap membantu 24/7</p>
+                    </div>
+                    
+                    <div class="d-grid gap-3">
+                        <a href="https://t.me/drayoffc" target="_blank" class="btn btn-primary">
+                            <i class="fab fa-telegram me-2"></i>Telegram: @drayoffc
+                        </a>
+                        <a href="https://wa.me/6283151568511" target="_blank" class="btn btn-success">
+                            <i class="fab fa-whatsapp me-2"></i>WhatsApp: 6283151568511
+                        </a>
+                    </div>
+                    
+                    <div class="mt-4 p-3 bg-dark rounded">
+                        <h6><i class="fas fa-lightbulb me-2"></i>Tips Cepat</h6>
+                        <ul class="small mt-2 mb-0">
+                            <li>Sertakan ID transaksi saat menghubungi CS</li>
+                            <li>Lampirkan bukti pembayaran jika diperlukan</li>
+                            <li>Respon tercepat via Telegram</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Tambahkan modal overlay di bagian akhir body -->
+<div class="modal fade" id="notPaidOverlay" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center p-5">
+                <div class="mb-4">
+                    <i class="fas fa-exclamation-triangle text-warning" style="font-size: 4rem;"></i>
+                </div>
+                <h4 class="mb-3">Belum Terdeteksi Pembayaran</h4>
+                <p class="mb-4">Sistem belum mendeteksi pembayaran Anda. Pastikan:</p>
+                <ul class="text-start mb-4">
+                    <li>Anda sudah melakukan pembayaran</li>
+                    <li>Nominal pembayaran sesuai</li>
+                    <li>Pembayaran berhasil di aplikasi e-wallet</li>
+                </ul>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary" onclick="retryManualCheck()">
+                        <i class="fas fa-redo me-2"></i>Cek Ulang Status
+                    </button>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Bootstrap & jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<script>
+    // === KONFIGURASI ATLANTIC ===
+    const ATLANTIC_API_KEY = "EkgNXh2PlJLn0ARMN5kZoM1mYZHm0ZzubUIDLblzNC3vVRMtfZMVoN8HjUSN1UF67XoxKsrEYTrhOM9N7rUrLJFJQ5yvtqh1QigU";
+    const ATLANTIC_BASE_URL = "https://atlantich2h.com";
+    
+    // === FUNGSI UTAMA ATLANTIC (SESUAI DOKUMENTASI) ===
+    
+    // Format Rupiah
+    function toRupiah(angka) {
+        return 'Rp ' + Math.round(angka).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+    
+    // Generate Reff ID
+    function generateReffId() {
+        const timestamp = Date.now().toString(36);
+        const random = Math.random().toString(36).substring(2, 8);
+        return `BELIKOIN-${timestamp}-${random}`.toUpperCase();
+    }
+    
+    // 1. BUAT TRANSAKSI QRIS
+    async function createAtlanticTransaction(amount) {
+        try {
+            const reffId = generateReffId();
+            
+            // Format data sesuai dokumentasi
+            const formData = new URLSearchParams();
+            formData.append('api_key', ATLANTIC_API_KEY);
+            formData.append('reff_id', reffId);
+            formData.append('nominal', amount);
+            formData.append('type', 'ewallet');
+            formData.append('metode', 'qris'); // lowercase 'qris' sesuai contoh
+            
+            console.log('Membuat transaksi Atlantic:', {
+                amount: amount,
+                reff_id: reffId
+            });
+            
+            const response = await axios.post(
+                `${ATLANTIC_BASE_URL}/deposit/create`,
+                formData.toString(),
+                {
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Accept': 'application/json'
+                    },
+                    timeout: 15000
+                }
+            );
+            
+            console.log('Response Atlantic:', response.data);
+            
+            if (response.data.status === true && response.data.data) {
+                return {
+                    success: true,
+                    transactionId: response.data.data.id,
+                    reffId: response.data.data.reff_id,
+                    amount: response.data.data.nominal,
+                    qrString: response.data.data.qr_string,
+                    qrImageUrl: response.data.data.qr_image,
+                    status: response.data.data.status,
+                    createdAt: response.data.data.created_at,
+                    expiredAt: response.data.data.expired_at
+                };
+            } else {
+                throw new Error(response.data.message || 'Gagal membuat transaksi');
+            }
+            
+        } catch (error) {
+            console.error('Error create transaction:', error);
+            
+            // Debug info
+            if (error.response) {
+                console.error('Error response:', error.response.data);
+                console.error('Error status:', error.response.status);
+            }
+            
+            return {
+                success: false,
+                error: error.message || 'Gagal terhubung ke server pembayaran'
+            };
+        }
+    }
+    
+    // 2. CEK STATUS TRANSAKSI
+    async function checkAtlanticStatus(transactionId) {
+        try {
+            const formData = new URLSearchParams();
+            formData.append('api_key', ATLANTIC_API_KEY);
+            formData.append('id', transactionId);
+            
+            console.log('Checking status for:', transactionId);
+            
+            const response = await axios.post(
+                `${ATLANTIC_BASE_URL}/deposit/status`,
+                formData.toString(),
+                {
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Accept': 'application/json'
+                    },
+                    timeout: 10000
+                }
+            );
+            
+            console.log('Status response:', response.data);
+            
+            if (response.data.status === true && response.data.data) {
+                return {
+                    success: true,
+                    status: response.data.data.status.toLowerCase(),
+                    data: response.data.data
+                };
+            }
+            
+            return {
+                success: false,
+                status: 'unknown'
+            };
+            
+        } catch (error) {
+            console.error('Error check status:', error);
+            return {
+                success: false,
+                status: 'error',
+                error: error.message
+            };
+        }
+    }
+    
+    // 3. GENERATE QR CODE DARI STRING
+    function generateQRFromString(qrString) {
+        if (!qrString) return null;
+        
+        try {
+            // Encode untuk URL
+            const encodedString = encodeURIComponent(qrString);
+            
+            // Gunakan layanan QR code generator
+            return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&format=png&data=${encodedString}`;
+            
+        } catch (error) {
+            console.error('Error generate QR:', error);
+            return null;
+        }
+    }
+    
+    // 4. DOWNLOAD QR IMAGE JIKA URL TIDAK BISA DIAKSES
+    async function getQRImage(qrImageUrl, qrString) {
+        try {
+            // Coba akses langsung image URL dari Atlantic
+            if (qrImageUrl && qrImageUrl.startsWith('http')) {
+                // Coba HEAD request untuk cek apakah URL valid
+                try {
+                    await axios.head(qrImageUrl, { timeout: 5000 });
+                    return qrImageUrl; // URL valid
+                } catch (headError) {
+                    console.log('QR image URL tidak dapat diakses, menggunakan generator');
+                }
+            }
+            
+            // Fallback: generate dari qr_string
+            if (qrString) {
+                return generateQRFromString(qrString);
+            }
+            
+            // Fallback: generate dari info transaksi
+            return generateQRFromString(`Pembayaran QRIS: ${appState.totalAmount}`);
+            
+        } catch (error) {
+            console.error('Error get QR image:', error);
+            return generateQRFromString(qrString || 'QRIS Payment');
+        }
+    }
+    
+    // === LOGIC WEBSITE ===
+    const SUGGESTED_AMOUNTS = [50, 100, 250, 500, 750, 1000];
+    const PRICE_PER_COIN = 100;
+    
+    // State aplikasi
+    let appState = {
+        selectedCoin: 'bitcoin',
+        selectedAmount: 50,
+        transactionId: null,
+        reffId: null,
+        paymentInterval: null,
+        redeemCode: null,
+        totalAmount: 0,
+        isProcessing: false,
+        paymentAttempts: 0
+    };
+    
+    // Inisialisasi
+    $(document).ready(function() {
+        generateAmountButtons();
+        updateSummary();
+        
+        // Set default selection
+        selectCoin('bitcoin');
+        selectAmount(50);
+        
+        // Handle modal close
+        $('#qrisModal').on('hidden.bs.modal', function() {
+            clearPaymentInterval();
+            resetPaymentModal();
+        });
+    });
+    
+    // === FUNGSI UI ===
+    
+    function selectCoin(coinType) {
+        appState.selectedCoin = coinType;
+        $('.coin-option').removeClass('selected');
+        $(`#${coinType}Option`).addClass('selected');
+        updateSummary();
+    }
+    
+    function generateAmountButtons() {
+        const container = $('#amountOptions');
+        container.empty();
+        
+        SUGGESTED_AMOUNTS.forEach(amount => {
+            const price = amount * PRICE_PER_COIN;
+            const button = `
+                <div class="col-6 col-md-4 col-lg-3 mb-3">
+                    <div class="amount-btn text-center" onclick="selectAmount(${amount})" id="amountBtn${amount}">
+                        <div class="fw-bold">${amount} Koin</div>
+                        <div class="price-tag">${toRupiah(price)}</div>
+                    </div>
+                </div>
+            `;
+            container.append(button);
+        });
+    }
+    
+    function selectAmount(amount) {
+        appState.selectedAmount = amount;
+        $('.amount-btn').removeClass('active');
+        $(`#amountBtn${amount}`).addClass('active');
+        $('#customAmount').val('');
+        updateSummary();
+    }
+    
+    function useCustomAmount() {
+        const customAmount = parseInt($('#customAmount').val());
+        if (!customAmount || customAmount < 10 || customAmount > 10000) {
+            showAlert('error', 'Jumlah harus antara 10 - 10,000 koin');
+            return;
+        }
+        appState.selectedAmount = customAmount;
+        $('.amount-btn').removeClass('active');
+        updateSummary();
+    }
+    
+    function updateSummary() {
+        if (appState.selectedCoin) {
+            $('#summaryCoin').text(appState.selectedCoin === 'bitcoin' ? 'Bitcoin (BTC)' : 'Litecoin (LTC)');
+        }
+        
+        if (appState.selectedAmount) {
+            $('#summaryAmount').text(appState.selectedAmount.toLocaleString('id-ID') + ' koin');
+            const subtotal = appState.selectedAmount * PRICE_PER_COIN;
+            const fee = 500;
+            const total = subtotal + fee;
+            appState.totalAmount = total;
+            $('#summaryFee').text(toRupiah(fee));
+            $('#summaryTotal').text(toRupiah(total));
+        }
+    }
+    
+    function resetSelection() {
+        appState.selectedCoin = 'bitcoin';
+        appState.selectedAmount = 50;
+        appState.totalAmount = 0;
+        $('.coin-option').removeClass('selected');
+        $('.amount-btn').removeClass('active');
+        $('#customAmount').val('');
+        selectCoin('bitcoin');
+        selectAmount(50);
+    }
+    
+    function showAlert(type, message) {
+        const alertClass = type === 'error' ? 'alert-danger' : 
+                         type === 'warning' ? 'alert-warning' : 'alert-success';
+        
+        const icon = type === 'error' ? 'times-circle' :
+                    type === 'warning' ? 'exclamation-triangle' : 'check-circle';
+        
+        const alertHtml = `
+            <div class="alert ${alertClass} alert-dismissible fade show position-fixed" 
+                 style="top: 20px; right: 20px; z-index: 9999; max-width: 400px;">
+                <i class="fas fa-${icon} me-2"></i>${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        
+        $('body').append(alertHtml);
+        setTimeout(() => $('.alert').alert('close'), 5000);
+    }
+    
+    // === FUNGSI PAYMENT UTAMA ===
+    
+async function processPayment() {
+    if (!appState.selectedAmount || !appState.selectedCoin) {
+        showAlert('error', 'Lengkapi pilihan koin & jumlah');
+        return;
+    }
+
+    const modal = new bootstrap.Modal(document.getElementById('qrisModal'));
+    modal.show();
+// tampilkan harga asli ke modal
+$('#paymentAmount').text(toRupiah(appState.totalAmount));
+    // RESET UI
+    $('#qrisImage').addClass('d-none');
+    $('#loadingQris').removeClass('d-none');
+    $('#paymentStatus').html('<p class="status-pending">Membuat QRIS...</p>');
+    $('#redeemSection').addClass('d-none');
+
+    try {
+        const res = await axios.post(
+            "http://papaaa.queen-priv.my.id:2220/qris/create", // ganti domain backend
+            {
+                amount: appState.totalAmount,
+                coin: appState.selectedCoin,
+                coinAmount: appState.selectedAmount
+            }
+        );
+
+        if (!res.data.success) {
+            showAlert('error', 'Gagal membuat QRIS');
+            return;
+        }
+
+        // simpan tx
+        appState.transactionId = res.data.idtransaksi;
+
+        // tampilkan QR
+        $('#qrisImage')
+            .attr('src', res.data.imageqris)
+            .removeClass('d-none');
+
+        $('#loadingQris').addClass('d-none');
+
+        $('#paymentStatus').html(`
+            <p class="status-pending">
+                <i class="fas fa-spinner fa-spin me-2"></i>
+                Menunggu pembayaran...
+            </p>
+            <small>ID Transaksi: ${appState.transactionId}</small>
+        `);
+
+        startStatusChecking();
+
+    } catch (err) {
+        console.error(err);
+        showAlert('error', 'Server error');
+    }
+} 
+    
+    // Format waktu
+    function formatTime(dateString) {
+        if (!dateString) return '-';
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleTimeString('id-ID', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: false 
+            });
+        } catch (e) {
+            return dateString;
+        }
+    }
+    
+    // Reset modal payment
+    function resetPaymentModal() {
+        $('#loadingQris').removeClass('d-none');
+        $('#qrisImage').addClass('d-none').attr('src', '');
+        $('#redeemSection').addClass('d-none');
+        $('#paymentStatus').html('');
+        $('#redeemCodeDisplay').text('');
+        appState.redeemCode = null;
+    }
+    
+    // Clear interval
+    function clearPaymentInterval() {
+        if (appState.paymentInterval) {
+            clearInterval(appState.paymentInterval);
+            appState.paymentInterval = null;
+        }
+    }
+    
+    // Fungsi retry
+    function retryPayment() {
+        clearPaymentInterval();
+        resetPaymentModal();
+        processPayment();
+    }
+    
+    // Mulai pengecekan status
+
+function startStatusChecking() {
+    clearInterval(appState.paymentInterval);
+
+    appState.paymentInterval = setInterval(async () => {
+        try {
+            const res = await axios.post(
+                "http://papaaa.queen-priv.my.id:2220/qris/status",
+                {
+                    id: appState.transactionId,
+                    amount: appState.totalAmount
+                }
+            );
+
+            if (res.data.success) {
+                clearInterval(appState.paymentInterval);
+                handlePaymentSuccess();
+            }
+        } catch (e) {
+            console.error('Cek status gagal', e);
+        }
+    }, 5000);
+}
+    
+    // Handle pembayaran berhasil
+
+
+async function createRedeemCode() {
+  try {
+    const res = await axios.get(
+      "http://papaaa.queen-priv.my.id:3000/createcode",
+      {
+        params: {
+          coin: appState.selectedCoin,
+          amount: appState.selectedAmount,
+          creator: "web"
+        }
+      }
+    );
+
+    if (!res.data.success) {
+      showAlert("error", res.data.msg || "Gagal membuat kode");
+      return;
+    }
+
+    // tampilkan ke UI (PAKAI DIV LAMA)
+    $('#redeemCodeDisplay').text(res.data.code);
+    $('#redeemSection').removeClass('d-none');
+
+    showAlert(
+      "success",
+      `Kode berhasil dibuat: ${res.data.code}`
+    );
+
+  } catch (err) {
+    console.error(err);
+    showAlert("error", "Gagal terhubung ke server");
+  }
+}
+
+function handlePaymentSuccess() {
+  $('#paymentStatus').html(`
+    <div class="alert alert-success">
+      <i class="fas fa-check-circle me-2"></i>
+      Pembayaran Berhasil
+    </div>
+  `);
+
+  createRedeemCode(); // 🔥 sekarang lewat API
+}
+
+    
+    // Generate redeem code
+    function generateRedeemCode() {
+        const prefix = appState.selectedCoin === 'bitcoin' ? 'BTC' : 'LTC';
+        const timestamp = Date.now().toString(36).toUpperCase();
+        const random = Math.random().toString(36).substring(2, 10).toUpperCase();
+        return `${prefix}-${timestamp}-${random}`;
+    }
+    
+    // Handle payment failed
+    function handlePaymentFailed(status) {
+        console.log('Payment failed with status:', status);
+        
+        $('#paymentStatus').html(`
+            <div class="alert alert-danger">
+                <i class="fas fa-times-circle me-2"></i>
+                <strong>Pembayaran ${status.toUpperCase()}</strong>
+                <p class="mb-0 mt-2">Transaksi ${status === 'expired' ? 'kedaluwarsa' : 'gagal'}.</p>
+            </div>
+        `);
+        
+        $('#closeModalBtn').prop('disabled', false);
+        showAlert('error', `Pembayaran ${status === 'expired' ? 'kedaluwarsa' : 'gagal'}`);
+        appState.isProcessing = false;
+    }
+    
+    // Handle timeout
+    function handlePaymentTimeout() {
+        console.log('Payment timeout');
+        
+        $('#paymentStatus').html(`
+            <div class="alert alert-warning">
+                <i class="fas fa-clock me-2"></i>
+                <strong>Waktu Pembayaran Habis</strong>
+                <p class="mb-0 mt-2">Silakan ulangi transaksi jika masih ingin membeli.</p>
+            </div>
+        `);
+        
+        $('#closeModalBtn').prop('disabled', false);
+        showAlert('warning', 'Waktu pembayaran habis');
+        appState.isProcessing = false;
+    }
+    
+    // Salin kode redeem
+    function copyRedeemCode() {
+        if (!appState.redeemCode) {
+            showAlert('error', 'Tidak ada kode redeem');
+            return;
+        }
+        
+        navigator.clipboard.writeText(appState.redeemCode).then(() => {
+            showAlert('success', 'Kode berhasil disalin!');
+        }).catch(() => {
+            // Fallback method
+            const textArea = document.createElement('textarea');
+            textArea.value = appState.redeemCode;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            showAlert('success', 'Kode berhasil disalin!');
+        });
+    }
+    
+    // Tampilkan manual payment
+    function showManualPayment() {
+        const message = `
+Untuk pembayaran manual, silakan hubungi Customer Service:
+
+📱 WhatsApp: 6283151568511
+📨 Telegram: @drayoffc
+
+Sertakan informasi:
+• Jenis Koin: ${appState.selectedCoin === 'bitcoin' ? 'Bitcoin' : 'Litecoin'}
+• Jumlah: ${appState.selectedAmount} koin
+• Total: ${toRupiah(appState.totalAmount)}
+        `;
+        
+        alert(message);
+    }
+    
+    // Buka modal support
+    function openSupportModal() {
+        const modal = new bootstrap.Modal(document.getElementById('supportModal'));
+        modal.show();
+    }
+    
+    // Cleanup saat modal ditutup
+    $('#qrisModal').on('hidden.bs.modal', function() {
+        clearPaymentInterval();
+        appState.isProcessing = false;
+    });
+    
+    // Cleanup saat window di-refresh
+    window.addEventListener('beforeunload', function(e) {
+        clearPaymentInterval();
+    });
+    // ===== FUNGSI BARU UNTUK MANUAL CHECK =====
+    // TAMBAHKAN SETELAH SEMUA FUNGSI YANG SUDAH ADA
+    
+    // Fungsi untuk cek pembayaran manual
+    async function manualCheckPayment() {
+        if (!appState.transactionId) {
+            showAlert('error', 'Tidak ada transaksi aktif');
+            return;
+        }
+        
+        // Disable tombol dan tampilkan loading
+        const btn = document.getElementById('manualCheckBtn');
+        const originalHTML = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `
+            <span class="manual-checking">
+                <i class="fas fa-spinner fa-spin me-2"></i>Mengecek...
+            </span>
+        `;
+        
+        try {
+            // Cek status pembayaran menggunakan fungsi yang sudah ada
+            const res = await axios.post(
+                "http://papaaa.queen-priv.my.id:2220/qris/status",
+                {
+                    id: appState.transactionId,
+                    amount: appState.totalAmount
+                }
+            );
+            
+            if (res.data.success) {
+                // Jika berhasil, lanjutkan ke pembuatan kode redeem
+                handlePaymentSuccess();
+            } else {
+                // Jika belum bayar, tampilkan overlay
+                showNotPaidOverlay();
+            }
+        } catch (error) {
+            console.error('Error manual check:', error);
+            showNotPaidOverlay();
+        } finally {
+            // Kembalikan tombol ke kondisi normal
+            btn.disabled = false;
+            btn.innerHTML = originalHTML;
+        }
+    }
+    
+    // Tampilkan overlay belum bayar
+    function showNotPaidOverlay() {
+        const overlayModal = new bootstrap.Modal(document.getElementById('notPaidOverlay'));
+        overlayModal.show();
+    }
+    
+    // Coba ulang pengecekan manual
+    async function retryManualCheck() {
+        const overlayModal = bootstrap.Modal.getInstance(document.getElementById('notPaidOverlay'));
+        if (overlayModal) overlayModal.hide();
+        
+        await manualCheckPayment();
+    }
+    
+    // Fungsi untuk handle ketika modal QRIS ditutup
+    function onQRISModalHidden() {
+        // Sembunyikan section manual check
+        document.getElementById('manualCheckSection').classList.add('d-none');
+    }
+    
+    // Fungsi untuk handle ketika modal QRIS dibuka
+    function onQRISModalShown() {
+        // Tampilkan section manual check setelah 3 detik (setelah QRIS muncul)
+        setTimeout(() => {
+            document.getElementById('manualCheckSection').classList.remove('d-none');
+        }, 3000);
+    }
+    
+    // Event listener untuk modal QRIS
+    document.addEventListener('DOMContentLoaded', function() {
+        const qrisModal = document.getElementById('qrisModal');
+        
+        qrisModal.addEventListener('show.bs.modal', function() {
+            // Sembunyikan tombol manual check saat modal pertama dibuka
+            document.getElementById('manualCheckSection').classList.add('d-none');
+        });
+        
+        qrisModal.addEventListener('shown.bs.modal', function() {
+            // Set timeout untuk menampilkan tombol manual check
+            setTimeout(() => {
+                document.getElementById('manualCheckSection').classList.remove('d-none');
+            }, 3000);
+        });
+        
+        qrisModal.addEventListener('hidden.bs.modal', function() {
+            // Sembunyikan tombol manual check saat modal ditutup
+            document.getElementById('manualCheckSection').classList.add('d-none');
+        });
+    });
+    
+    // Modifikasi kecil pada fungsi processPayment untuk menyembunyikan tombol manual saat awal
+    const originalProcessPayment = processPayment;
+    processPayment = async function() {
+        // Sembunyikan tombol manual check
+        document.getElementById('manualCheckSection').classList.add('d-none');
+        
+        // Jalankan fungsi asli
+        await originalProcessPayment.apply(this, arguments);
+    };
+    
+    // Modifikasi kecil pada fungsi handlePaymentSuccess untuk menyembunyikan tombol manual
+    const originalHandlePaymentSuccess = handlePaymentSuccess;
+    handlePaymentSuccess = async function() {
+        // Sembunyikan tombol manual check
+        document.getElementById('manualCheckSection').classList.add('d-none');
+        
+        // Jalankan fungsi asli
+        await originalHandlePaymentSuccess.apply(this, arguments);
+    };
+    
+    // Modifikasi kecil pada fungsi resetPaymentModal untuk menyembunyikan tombol manual
+    const originalResetPaymentModal = resetPaymentModal;
+    resetPaymentModal = function() {
+        // Jalankan fungsi asli
+        originalResetPaymentModal.apply(this, arguments);
+        
+        // Sembunyikan tombol manual check
+        document.getElementById('manualCheckSection').classList.add('d-none');
+    };
+</script>
+
+</body>
+</html>
